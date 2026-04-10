@@ -3,7 +3,7 @@
 ![alt text](https://github.com/FB-GIS/shannon-index-buildings-nice/blob/main/results/shannon_bati_nice.png)
 
 
-##What is the Shannon Index?  
+## What is the Shannon Index?  
 
 The Shannon Diversity Index, initially designed to analyze ecosystem biodiversity, is also highly relevant for urban studies:  
 
