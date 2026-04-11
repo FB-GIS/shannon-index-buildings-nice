@@ -20,9 +20,9 @@ try:
                             password=DB_PASS,
                             host=DB_HOST,
                             port=DB_PORT)
-    print("Connexion réussie à la base de donnée")
+    print("Connection to the database")
 except:
-    print("Erreur de connexion")
+    print("Error: Impossible to connect to the database")
 
 
 PLACE = "Nice, France"
