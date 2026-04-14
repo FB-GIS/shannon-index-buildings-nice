@@ -2,8 +2,10 @@ import pandas as pd
 import geopandas as gpd
 import osmnx as ox
 import numpy as np
-import psycopg2
 from sqlalchemy import create_engine
+import requests
+import py7zr
+import io
 
 
 DB_NAME = "shannon_index_nice_db"
@@ -12,25 +14,28 @@ DB_PASS = "postgres"
 DB_HOST = "localhost"
 DB_PORT = "5432"
 
-engine = create_engine(f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
-
 try:
-    conn = psycopg2.connect(database=DB_NAME,
-                            user=DB_USER,
-                            password=DB_PASS,
-                            host=DB_HOST,
-                            port=DB_PORT)
-    print("Connection to the database")
+    engine = create_engine(f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
+    print("Connection to the database is successful")
 except:
-    print("Error: Impossible to connect to the database")
+    print("Error: Connection failure. Error establishing connection to the database")
+
 
 
 PLACE = "Nice, France"
 BUFFER_DIST = 200
+NUM_DEP = '06'
 
 
+url = f"https://data.geopf.fr/telechargement/download/BDTOPO/BDTOPO_3-3_TOUSTHEMES_SHP_LAMB93_D0{NUM_DEP}_2024-03-15/BDTOPO_3-3_TOUSTHEMES_SHP_LAMB93_D0{NUM_DEP}_2024-03-15.7z"
+
+response = requests.get(url)
+
+with py7zr.SevenZipFile((io.BytesIO(response.content)), mode='r') as z:
+    z.extractall("data/")
+
+bati_06 = gpd.read_file(f"data/BDTOPO_3-3_TOUSTHEMES_SHP_LAMB93_D0{NUM_DEP}_2024-03-15/BDTOPO/1_DONNEES_LIVRAISON_2024-04-00042/BDT_3-3_SHP_LAMB93_D0{NUM_DEP}-ED2024-03-15/BATI/BATIMENT.shp")
 admin_nice = ox.geocode_to_gdf(PLACE)
-bati_06 = gpd.read_file("C:/Users/fd-ba/Desktop/PYTHON/0_Indice_Shannon/data/BATIMENT.shp")
 
 
 def shannon_index(bati_data, boundary, buffer_dist):
@@ -68,5 +73,7 @@ def shannon_index(bati_data, boundary, buffer_dist):
 
 
 shannon_index = shannon_index(bati_06, admin_nice, BUFFER_DIST)
+
+print(shannon_index[:10])
 
 shannon_index.to_postgis("shannon_idx_bati_nice", engine)
